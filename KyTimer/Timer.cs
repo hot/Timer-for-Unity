@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 namespace KyUtils
 {
@@ -19,14 +20,23 @@ namespace KyUtils
 		public float interval;
 		public int maxCount;
 		public int countNow;
+
+		public Action completeCB;
 		#if UNITY_EDITOR
 		//for editor only
 		public bool bShowDetail = false;
 		#endif
 
+		public TimerHandle OnComplete(Action cb)
+		{
+			completeCB = cb;
+			return this;
+		}
+
 		public void Kill()
 		{
 			bDead = true;
+			completeCB = null;
 		}
 
 		public void Pause()
@@ -106,8 +116,12 @@ namespace KyUtils
 			}
 			//clean up timer
 			th.bDead = true;
+			if(th.completeCB != null)
+			{
+				th.completeCB();
+			}
 			#if UNITY_EDITOR
-			_Instance.timerHandleList.Remove(th);
+			timerHandleList.Remove(th);
 			#endif
 		}
 
@@ -133,7 +147,7 @@ namespace KyUtils
 			StartCoroutine(_timer(th));
 			#if UNITY_EDITOR
 			th.countNow = 0;
-			_Instance.timerHandleList.AddLast(th);
+			timerHandleList.AddLast(th);
 			#endif
 			return th;
 		}
